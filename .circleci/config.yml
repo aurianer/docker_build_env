@@ -14,8 +14,19 @@ jobs:
             IMAGE_NAME_LATEST: stellargroup/build_env:latest
             IMAGE_NAME_VERSIONED: stellargroup/build_env:2
         steps:
+            - tag_update
             - checkout
             - setup_remote_docker
+            - run:
+                name: Tag Update Verification
+                command: |
+                    hub_url=https://registry.hub.docker.com/v1/repositories/"stellargroup/build_env"/tags
+                    current_tag=$(wget -q $hub_url -O -  | tr '},' '\n' | sed '/name/!d' | sed -E "s/(.*)name\": \"([^\"]*)\"/\2/" | sed '/^[a-Z]/d' | sort | tail -1)
+                    updated_tag=$(echo ${IMAGE_NAME_VERSIONED} | cut -d: -f2)
+                    if [[ $current_tag == $updated_tag ]]; then
+                        echo "Please update the tag of the image, an image with this speific tag already exists."
+                        exit 1
+                    fi
             - run:
                 name: Building Docker Image
                 command: |

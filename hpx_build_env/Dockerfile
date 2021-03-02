@@ -61,6 +61,16 @@ RUN apt-get update -qq && apt-get install -y -qq    \
                     devscripts                      \
                     wget
 
+# Install ROCm
+RUN wget -q -O - https://repo.radeon.com/rocm/rocm.gpg.key | apt-key add - && \
+    echo 'deb [arch=amd64] https://repo.radeon.com/rocm/apt/debian/ focal main' | \
+    tee /etc/apt/sources.list.d/rocm.list && \
+    apt install libnuma-dev rocm-dkms
+
+ENV PATH="${PATH}:/opt/rocm/bin:/opt/rocm/rocprofiler/bin:/opt/rocm/opencl/bin"
+ENV CXX hipcc
+
+
 # Get cmake files (in separate RUN command to get cached)
 RUN wget -q https://cmake.org/files/v3.17/cmake-3.17.5-Linux-x86_64.tar.gz -O cmake.tar.gz && \
     echo "897142368b15a5693c999a7ed2187be20c1b41a68c3711379d32a33469bb29ba cmake.tar.gz" | sha256sum --check --status && \
@@ -87,6 +97,3 @@ RUN pip3 install sphinx sphinx-rtd-theme breathe==4.16.0 cmake_format && \
     cmake -DCMAKE_PREFIX_PATH="/usr/lib/llvm-10" -DCMAKE_INSTALL_PREFIX="/usr" .. && make -j install && \
     cd /tmp && rm -rf include-what-you-use &&       \
     rm -rf /var/lib/apt/lists/*
-
-ENV CC clang
-ENV CXX clang++

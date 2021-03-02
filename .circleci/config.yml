@@ -11,8 +11,8 @@ jobs:
             - image: docker:17.05.0-ce-git
         environment:
             IMAGE_FOLDER_NAME: hpx_build_env
-            IMAGE_NAME_LATEST: stellargroup/build_env:latest
-            IMAGE_NAME_VERSIONED: stellargroup/build_env:2
+            IMAGE_NAME_LATEST: stellargroup/build_env:hip
+            IMAGE_NAME_VERSIONED: stellargroup/build_env:hip
         steps:
             - checkout
             - setup_remote_docker
@@ -35,7 +35,8 @@ jobs:
                     docker run --volumes-from app -w /hpx/build ${IMAGE_NAME_LATEST} ninja core
             - deploy:
                 command: |
-                    if [ "${CIRCLE_BRANCH}" == "master" ]; then
+                    if [[ "${CIRCLE_BRANCH}" == "master" ] || \
+                        ["${CIRCLE_BRANCH}" == "add_hip_docker_image_for_github_actions" ]]; then
                         docker login -u $DOCKER_USER -p $DOCKER_PASS
                         docker push ${IMAGE_NAME_LATEST}
                         docker push ${IMAGE_NAME_VERSIONED}
